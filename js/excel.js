@@ -20,13 +20,8 @@ let columnsCharacter   = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
 
 function writeAllMembers(members){
 
-
-
-
-
-
-
     worksheet.getColumn(2).width = 20;
+
     for (let index = 0; index < members.length ; index++) {
         let playerName = members[index];
         let cellAdress = columnStartNumber + (index + lineStartNumber);
@@ -194,7 +189,7 @@ function finishExcel(path){
 
 
 function createExcel(data, members, path){
-    writeAllMembers(getMembers(members));
+    writeAllMembers(members);
     writeDays();
 
     for (let i = 0; i < data.length; i++) {

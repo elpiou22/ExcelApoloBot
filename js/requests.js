@@ -55,26 +55,20 @@ function writeInFile(response, file) {
 async function getData(tag){
     let req = `https://api.clashofclans.com/v1/clans/${tag}/currentwar/leaguegroup`;
     let rounds;
-    let members;
 
     try {
         const response = await getReq(req);
         //console.log(response);
         //writeInFile(response, "letest.json")
-        for (let index = 0; index < response['clans'].length; index++) {
-            let clanTag = response['clans'][index]['tag'];
-            if (clanTag == "#" + tag.substring(3)) {
-                //writeInFile(response['clans'][index]['members'], "../json/members.json");
-                members = response['clans'][index]['members'];
-            }
-        }
-        //writeInFile(response['rounds'], "../json/leagueRounds.json");
+
+        //writeInFile(members, "../json/leagueRounds.json");
         rounds = response['rounds'];
 
-        return {members, rounds}; 
+        return rounds; 
 
     } catch (error) {
-        console.log("erreur dans le fichier requests.js dans la fonction getData()");
+        console.log("[ERROR] erreur dans le fichier requests.js dans la fonction getData()");
+        console.log(error);
     }
 }
 
@@ -110,37 +104,32 @@ async function getDataPerDay(clanTag, rounds){
         for (let tagNumber = 0; tagNumber < tags.length; tagNumber++) {
             path = pathDay + "round" + tagNumber + ".json" ;
             let tag = tags[tagNumber];
-            if (tag == "#0") {
+            if (tag !== "#0") {
                 // futur jour donc guerre encore inconnue
-                return ;
-            }
 
-            let req = `https://api.clashofclans.com/v1/clanwarleagues/wars/${"%23" + tag.slice(1)}`;
-            try {
-                response = await getReq(req);
-                //console.log((response.clan.tag).slice(1) + " == " + clanTag.slice(3) + "       ||        " + (response.opponent.tag).slice(1) + " == " + clanTag.slice(3));
-                if ((response.clan.tag).slice(1) == clanTag.slice(3) || (response.opponent.tag).slice(1) == clanTag.slice(3)) {
-                    //writeInFile(response, `../json/${path}`);
-                    //console.log(response);
-                    returnment.push(response);
-                    
+                let req = `https://api.clashofclans.com/v1/clanwarleagues/wars/${"%23" + tag.slice(1)}`;
+                try {
+                    response = await getReq(req);
+                    //console.log((response.clan.tag).slice(1) + " == " + clanTag.slice(3) + "       ||        " + (response.opponent.tag).slice(1) + " == " + clanTag.slice(3));
+                    if (((response.clan.tag).slice(1) == clanTag.slice(3) || (response.opponent.tag).slice(1) == clanTag.slice(3)) && response.state !== "preparation") {
+                        //writeInFile(response, `../json/${path}`);
+                        //console.log(response);
+                        returnment.push(response);
+                    }
+                } catch (error) {
+                    console.error(`[ERROR] Erreur avec la requête pour ${tag}:`, error);
                 }
-            } catch (error) {
-                console.error(`Erreur avec la requête pour ${tag}:`, error);
-            }
-            
-            //
-            
+            }   
         }
     }
-    //console.log(returnment);
     return returnment;
 }
 
 
 async function getDataRequest(tag) {
     try {
-        let {members, rounds} = await getData(tag);
+        let rounds = await getData(tag);
+        //console.log({members, rounds});
         //writeInFile(rounds, "letest.json");
 
 
@@ -148,10 +137,11 @@ async function getDataRequest(tag) {
         //console.log(finalData);
         //writeInFile(finalData, "letest.json");
     
-        return [finalData, members];
+        return finalData;
         
     } catch (error) {
         console.log("erreur dans le fichier requests.js")
+        console.log(error);
         return ;
     }
 }

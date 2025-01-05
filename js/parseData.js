@@ -281,7 +281,7 @@ function calculateBonus(data, attackerTag, attackerTh, defenderTh, attackStars){
 
     // hdv superieur et 2 étoiles:
     // hdv 14 attaque un hdv 15 mais tout les hdv 14 et 13 sont détruits. (3*, 2*)-> 1 ; (1*, 0*)-> 0
-
+    /*
     switch (inferiorOrEqualTownHallsLeft(attackerTag, data)) {
         case 0:
             return 1;
@@ -291,7 +291,44 @@ function calculateBonus(data, attackerTag, attackerTh, defenderTh, attackStars){
         default:
             return 0;
     }
+    */
 }
+
+/**
+ * Permet de récupérer tout les joueurs en ligue bien triés par leur mapPosition (Prend aussi en compte les joueurs non présents au J1 mais présent dans un jour ultérieur)
+ * @param {Array} cwlData La data complète des bonus envoyés vers l'excel
+ * @returns Array de dictionnaires de la forme {playerName, mapPosition} 
+ */
+function deleteUselessMembers(cwlData) {
+    let players = [];
+    let seenNames = new Set();
+
+    for (let warDay = 0; warDay < cwlData.length; warDay++) {
+        const war = cwlData[warDay];
+
+        for (let i = 0; i < war.length; i++) {
+
+            const player = war[i];
+            let playerName = player.name;
+            let mapPosition= player.mapPosition;
+
+            if (!seenNames.has(playerName)) {
+                seenNames.add(playerName);
+                players.push({ playerName, mapPosition });
+            }
+        }
+    }
+    players.sort((a, b) => a.mapPosition - b.mapPosition);
+
+    let playersName = []
+    for (let index = 0; index < players.length; index++) {
+        const element = players[index];
+        playersName.push(element.playerName);
+    }
+    
+    return playersName;
+}
+
 
 
 function exportToExcel(allData) {
@@ -316,10 +353,12 @@ function exportToExcel(allData) {
 async function parseDataAndExportToExcel(allData, clanTag) {
 
     let dataWithBonuses = setBonusValue(getParsedData(allData = allData, clanTag = clanTag, tostop = null));
-    //writeInFile(dataWithBonuses[0], "letest.json");
+    //writeInFile(dataWithBonuses, "letest.json");
+    let membersInCWL = deleteUselessMembers(dataWithBonuses);
     //writeInFile(getParsedData(allData = allData, clanTag = clanTag, tostop = null)[0], "letest.json")
     //writeInFile(exportToExcel(dataWithBonuses), "letest.json");
-    return exportToExcel(dataWithBonuses);
+    let dataParsed = exportToExcel(dataWithBonuses);
+    return [dataParsed, membersInCWL];
 }
 
 
